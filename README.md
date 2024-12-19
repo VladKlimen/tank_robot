@@ -56,3 +56,6 @@ You can control the tank and the gun manually, by running (along with the gazebo
 roscd tank_robot/scripts
 ./teleop_tank_keyboard.py
 ```
+
+## Visualizing plan
+See the plan_visualization.ipyb and the plan_visualization_examples folder
