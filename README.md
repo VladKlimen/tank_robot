@@ -54,5 +54,5 @@ The simulation should start to run.
 You can control the tank and the gun manually, by running (along with the gazebo.launch in a different terminal):
 ```sh
 roscd tank_robot/scripts
-./teleop_tank_keyboard
+./teleop_tank_keyboard.py
 ```
