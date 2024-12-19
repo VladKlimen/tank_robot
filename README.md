@@ -17,14 +17,13 @@ source ~/catkin_ws/devel/setup.bash
 ```
 
 ### Installing python requirements
+Conda (new environment):
 ```sh
-# conda (new environment):
 conda env create -f ~/<your_catkin_ws>/src/tank_robot/tank_robot_environment.yml
 ```
 
 OR
-
+Or using PyPi to install all the requirements:
 ```sh
-# Or using PyPi:
 pip install -r ~/catkin_ws/src/tank_robot/requirements.txt
 ```
