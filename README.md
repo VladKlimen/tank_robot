@@ -49,3 +49,10 @@ roscd tank_robot/scripts
 ```
 
 The simulation should start to run.
+
+## Manual control
+You can control the tank and the gun manually, by running (along with the gazebo.launch in a different terminal):
+```sh
+roscd tank_robot/scripts
+./teleop_tank_keyboard
+```
