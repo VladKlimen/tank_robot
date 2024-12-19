@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tank">
+    
+    <!-- camera/sensor mount -->
+    <link name="lidar_link"/>
+    <joint name="lidar_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_link"/>
+        <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0"/>
+        <axis xyz="0.0 0.0 0.0"/> 
+    </joint>
+
+    <gazebo reference = "lidar_link">
+        <sensor name = "lds_lfcd_sensor" type = "ray">
+            <pose> 0 0 0 0 0 0 </pose>
+            <visualize>false</visualize>
+            <update_rate>100</update_rate>
+            <ray>
+                <scan>
+                    <horizontal>
+                        <samples>720</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14159</min_angle>  <!-- -180 degrees in radians -->
+                        <max_angle>3.14159</max_angle>   <!-- 180 degrees in radians -->
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.10</min>   <!-- Minimum range in meters -->
+                    <max>5.0</max>   <!-- Maximum range in meters -->
+                    <resolution>0.01</resolution>   <!-- Range resolution in meters -->
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
+            </ray>
+            <plugin name="gazebo_ros_lds_lfcd_controller" filename="libgazebo_ros_laser.so">
+                <topicName>/scan</topicName>
+                <!-- <ros>
+                    <remapping>~/out:=scan</remapping>
+                </ros>
+                <output_type>sensor_msgs/LaserScan</output_type> -->
+                <frameName>lidar_link</frameName>
+            </plugin>
+        </sensor> 
+    </gazebo> 
+ 
+</robot>
+

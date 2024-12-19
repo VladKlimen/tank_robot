@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<sdf version='1.7' xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <world name='by_small'>
+
+    <!-- World state -->
+    <state world_name='default'>
+      <sim_time>0</sim_time>
+      <real_time>0</real_time>
+      <wall_time>0</wall_time>
+      <iterations>0</iterations>
+    </state>
+  
+  <!-- Models - instantiation -->
+    <!-- World parameters and objects -->
+    <xacro:include filename="$(find tank_robot)/worlds/obstacles.sdf.xacro"/>
+    <xacro:include filename="$(find tank_robot)/worlds/goals.sdf.xacro"/>
+    <!-- Perimeter -->
+    <xacro:include filename="$(find tank_robot)/worlds/perimeters/small_perimeter.sdf"/>
+    <!-- Tables -->
+    <!-- Table marble height: 2.592m on scale 1 -->
+    <!-- <xacro:table_marble serial="obs_0" x="5" y="6" rx="0" ry="0" rz="0" sx="0.25" sy="0.25" sz="0.25"/> -->
+
+    <xacro:table serial="obs_0" x="5" y="6" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+    <!-- Trees -->
+    <!-- <xacro:oak_tree serial="0" x="7" y="-7" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/> -->
+    <!-- Inner walls -->
+    <xacro:rectangle type="inner_wall_obs" serial="0" x="-4" y="-7" rx="0" ry="0" rz="${pi/2}" sx="0.15" sy="12" sz="0.5"/>
+    <xacro:rectangle type="inner_wall_obs" serial="1" x="4" y="3" rx="0" ry="0" rz="${pi/2}" sx="0.15" sy="12" sz="0.5"/>
+    <xacro:rectangle type="inner_wall_obs" serial="2" x="2" y="-3.5" rx="0" ry="0" rz="0" sx="0.15" sy="11.5" sz="0.5"/>
+    <xacro:rectangle type="inner_wall_obs" serial="3" x="-4" y="-1" rx="0" ry="0" rz="${pi/2}" sx="0.15" sy="12" sz="0.5"/>
+    <!-- Labirints -->
+    <xacro:labyrinth serial="obs_0" x="6" y="-6" sx="1" sy="0.8" sz="2" rz="0"/>
+    <!-- Boxes -->
+    <xacro:rectangle type="box_obs" serial="0" x="-8" y="-3.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+    <xacro:rectangle type="box_obs" serial="1" x="-7" y="-4.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+    <xacro:rectangle type="box_obs" serial="2" x="-6" y="-5.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+
+    <xacro:rectangle type="box_obs" serial="3" x="-6.5" y="-2.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+    <xacro:rectangle type="box_obs" serial="4" x="-5.5" y="-3.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+    <xacro:rectangle type="box_obs" serial="5" x="-4.5" y="-4.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1"/>
+    <!-- Cylinders -->
+    <xacro:cylinder type="cylinder_obs" serial="0" x="-6.5" y="6.5" z="0.75" rx="0" ry="0" rz="0" l="1.5" r="0.5"/>
+    <xacro:cylinder type="cylinder_obs" serial="1" x="-5.5" y="6.5" z="0.5" rx="0" ry="0" rz="0" l="1" r="0.5"/>
+    <xacro:cylinder type="cylinder_obs" serial="2" x="-4.5" y="6.5" z="0.25" rx="0" ry="0" rz="0" l="0.5" r="0.5"/>
+    <!-- Cats -->
+    <!-- Type 1 (laying) size: 0.5 0.205 0.372 -->
+    <!-- Type 2 (sleeping) size: 0.46 0.36 0.178 -->
+    <!-- Type 3 (standing) size: 1.275 0.343 1.315 -->
+    <!-- Type 4 (sitting) size: 0.322 0.205 0.464 -->
+    <!-- <xacro:cat type="1" serial="0" x="-6.5" y="6.5" z="1.5" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1" cx="0.5" cy="0.205" cz="0.372"/>
+    <xacro:cat type="1" serial="1" x="9.0" y="-7.0" z="0.0" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1" cx="0.5" cy="0.205" cz="0.372"/>
+    <xacro:cat type="1" serial="2" x="-5.5" y="-3.5" z="1.0" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1" cx="0.5" cy="0.205" cz="0.372"/>
+
+    <xacro:cat type="2" serial="0" x="5.25" y="6.0" z="1.0" rx="0" ry="0" rz="${pi/4}" sx="1" sy="1" sz="1" cx="0.46" cy="0.36" cz="0.178"/>
+    <xacro:cat type="2" serial="1" x="-5.5" y="8.0" z="0.0" rx="0" ry="0" rz="-${pi/4}" sx="1" sy="1" sz="1" cx="0.46" cy="0.36" cz="0.178"/>
+    <xacro:cat type="2" serial="2" x="-7" y="-3.5" z="0.0" rx="0" ry="0" rz="0" sx="1" sy="1" sz="1" cx="0.46" cy="0.36" cz="0.178"/>
+
+    <xacro:cat type="3" serial="0" x="-6" y="2.5" z="0" rx="0" ry="0" rz="${-pi/4}" sx="0.4" sy="0.4" sz="0.4" cx="1.275" cy="0.343" cz="1.315"/>
+    <xacro:cat type="3" serial="1" x="-6" y="-4.5" z="0" rx="0" ry="0" rz="${pi/2}" sx="0.4" sy="0.4" sz="0.4" cx="1.275" cy="0.343" cz="1.315"/>
+    <xacro:cat type="3" serial="2" x="7.5" y="-4.5" z="0" rx="0" ry="0" rz="${pi}" sx="0.4" sy="0.4" sz="0.4" cx="1.275" cy="0.343" cz="1.315"/>
+
+    <xacro:cat type="4" serial="0" x="-8" y="-4.5" z="0" rx="0" ry="0" rz="${-pi/2}" sx="0.8" sy="0.8" sz="0.8" cx="0.322" cy="0.205" cz="0.464"/>
+    <xacro:cat type="4" serial="1" x="6" y="-6" z="0" rx="0" ry="0" rz="${pi}" sx="0.8" sy="0.8" sz="0.8" cx="0.322" cy="0.205" cz="0.464"/> -->
+
+  </world>
+</sdf>

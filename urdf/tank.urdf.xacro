@@ -1,0 +1,309 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tank">
+
+	<!-- <xacro:property name="pi" value="3.14159265"/> -->
+	<xacro:property name="cube_c" value="${1/12}"/>
+
+	<!-- Footprint -->
+
+	<link name="base_footprint"/>
+
+	<joint name="base_joint" type="fixed">
+		<parent link="base_footprint"/>
+		<child link="base_link"/>
+		<origin rpy="0 0 0" xyz="0 0 0"/>
+	</joint>
+  
+  	<!-- Chassis -->
+
+	<xacro:property name="ch_d" value="0.035"/>
+	<xacro:property name="ch_w" value="0.32"/>
+	<xacro:property name="ch_h" value="0.05"/>
+	<xacro:property name="ch_m" value="1.2"/>
+
+	<link name='base_link'>
+		<inertial>
+			<origin rpy="0 0 0" xyz="0 0 0.06"/>
+			<mass value="${ch_m}"/>
+			<inertia ixx="${cube_c*ch_m*(ch_h*ch_h + ch_d*ch_d)}" ixy="0.0" ixz="0.0" 
+					 iyy="${cube_c*ch_m*(ch_w*ch_w + ch_h*ch_h)}" iyz="0.0" 
+					 izz="${cube_c*ch_m*(ch_w*ch_w + ch_d*ch_d)}"/>
+		</inertial>
+		
+		<collision name='collision_top'>
+			<geometry>
+				<box size="0.28 0.1445 0.01"/>
+			</geometry>
+			<origin rpy="0 0 0" xyz="-0.02 0 0.089"/>
+		</collision>
+		
+		<collision name='collision_bottom'>
+			<geometry>
+				<box size="${ch_w} ${ch_d} ${ch_h}"/>
+			</geometry>
+			<origin rpy="0 0 0" xyz="0 0 0.06"/>
+		</collision>
+
+		<!-- <collision name='collision'>
+			<geometry>
+				<mesh filename="package://tank_robot/meshes/body_with_cats.dae"/>
+			</geometry>
+		</collision> -->
+
+		<visual name='visual'>
+			<origin rpy="0 0 ${pi/2}" xyz="0.0 0 0.0"/>
+			<geometry>
+				<mesh filename="package://tank_robot/meshes/body_with_cats.dae"/>
+			</geometry>
+		</visual>
+	</link>
+
+	<gazebo reference="base_link">
+		<self_collide>1</self_collide>
+	</gazebo>
+
+	<!-- Caster wheel -->
+	<!-- <link name="caster_wheel">
+		<collision>
+			<geometry>
+				<sphere radius="0.025"/>
+			</geometry>
+		</collision>
+
+		<inertial>
+			<mass value="0.01"/>
+			<inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+		</inertial>
+	</link>
+
+	<joint name="caster_joint" type="fixed">
+		<parent link="base_link"/>
+		<child link="caster_wheel"/>
+		<origin xyz="0.115 0 0.025" rpy="0 0 0"/>
+	</joint>
+
+	<gazebo reference="caster_wheel">
+		<mu>0.0</mu>
+		<mu2>0.0</mu2>
+		<kp>1000000.0</kp>
+		<kd>1.0</kd>
+	</gazebo> -->
+
+	<!-- Wheels -->
+
+	<xacro:macro name="wheel" params="side dae y_sign x r z ix iy iz collision_mul">
+		<link name="${side}_wheel">
+			<inertial>
+				<origin rpy="0 0 0" xyz="0.0 ${y_sign}0.0475 0.0"/>
+				<mass value="0.1"/>
+				<inertia ixx="${ix}" ixy="0.0" ixz="0.0" iyy="${iy}" iyz="0.0" izz="${iz}"/>
+			</inertial>
+
+			<collision name='collision'>
+				<geometry>
+					<cylinder length="${0.05*collision_mul}" radius="${r*collision_mul}"/>
+				</geometry>
+				<origin rpy="${pi/2} 0 0" xyz="0.0 ${y_sign}0.0475 0.0"/>
+			</collision>
+
+			<visual name='visual'>
+				<geometry>
+					<mesh filename="package://tank_robot/meshes/${dae}_wheel.dae"/>
+				</geometry>
+				<origin rpy="0 0 ${pi/2}" xyz="0.0 0.0 ${z}"/>
+			</visual>
+		</link>
+
+		<joint name="${side}_wheel_joint" type="continuous">
+			<parent link="base_link"/>
+			<child link="${side}_wheel"/>
+			<origin rpy="0 0 0" xyz="${x} ${y_sign}0.0475  ${r}"/>
+			<axis xyz="0.0 1.0 0.0"/>
+		</joint>
+
+		<gazebo reference="${side}_wheel">
+			<self_collide>1</self_collide>
+			<mu1 value="200.0"/>
+			<mu2 value="100.0"/>
+			<kp value="10000000.0" />
+			<kd value="100.0" />
+		</gazebo>
+
+		<transmission name="${side}_wheel_trans">
+			<type>transmission_interface/SimpleTransmission</type>
+			<actuator name="${side}_wheel_motor">
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+			<joint name="${side}_wheel_joint">
+				<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+			</joint>
+		</transmission>
+
+	</xacro:macro>
+
+	<xacro:wheel side="rear_right" dae="rear_right" y_sign="-" x="-0.12" r="0.0414" z="-0.0389" ix="0.000064" iy="0.000086" iz="0.000064" collision_mul="0"/>
+	<xacro:wheel side="rear_left" dae="rear_left" y_sign="+" x="-0.12" r="0.0414" z="-0.0389" ix="0.000064" iy="0.000086" iz="0.000064" collision_mul="0"/>
+
+	<xacro:wheel side="middle1_right" dae="none" y_sign="-" x="0.044" r="0.0414" z="-0.0389" ix="0.000064" iy="0.000086" iz="0.000064" collision_mul="1"/>
+	<xacro:wheel side="middle1_left" dae="none" y_sign="+" x="0.044" r="0.0414" z="-0.0389" ix="0.000064" iy="0.000086" iz="0.000064" collision_mul="1"/>
+
+	<xacro:wheel side="middle2_right" dae="none" y_sign="-" x="-0.044" r="0.0414" z="-0.0389" ix="0.000064" iy="0.000086" iz="0.000064" collision_mul="1"/>
+	<xacro:wheel side="middle2_left" dae="none" y_sign="+" x="-0.044" r="0.0414" z="-0.0389" ix="0.000064" iy="0.000086" iz="0.000064" collision_mul="1"/>
+
+	<xacro:wheel side="front_right" dae="front" y_sign="-" x="0.115" r="0.0408885" z="-0.0326285" ix="0.000063" iy="0.000084" iz="0.000063" collision_mul="0"/>
+	<xacro:wheel side="front_left" dae="front" y_sign="+" x="0.115" r="0.0408885" z="-0.0326285" ix="0.000063" iy="0.000084" iz="0.000063" collision_mul="0"/>
+	
+	<!-- Turret -->
+
+	<link name='turret'>
+		<inertial>
+			<mass value="0.05"/>
+			<inertia ixx="0.000031" ixy="0.0" ixz="0.0" iyy="0.000031" iyz="0.0" izz="0.000062"/>
+		</inertial>
+
+		<!-- <collision name='collision'>
+			<geometry>
+				<mesh filename="package://tank_robot/meshes/turret.dae"/>
+			</geometry>
+			<origin rpy="0 0 ${pi/2}" xyz="0 0 -0.005"/>
+		</collision> -->
+
+		<visual name='visual'>
+			<geometry>
+				<mesh filename="package://tank_robot/meshes/turret.dae"/>
+			</geometry>
+			<origin rpy="0 0 ${pi/2}" xyz="0 0 -0.005"/>
+		</visual>
+	</link>
+
+	<joint name="turret_joint" type="continuous">
+		<parent link="base_link"/>
+		<child link="turret"/>
+		<origin rpy="0 0 0" xyz="0 0 0.1"/>
+		<axis xyz="0.0 0.0 1.0"/>
+		<limit effort="30" velocity="${pi}"/>
+		<dynamics damping="0.1"/>
+	</joint>
+
+	<transmission name="turret_trans">
+		<type>transmission_interface/SimpleTransmission</type>
+		<actuator name="$turret_motor">
+			<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+			<mechanicalReduction>1</mechanicalReduction>
+		</actuator>
+		<joint name="turret_joint">
+			<!-- <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface> -->
+			<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+		</joint>
+	</transmission>
+
+	<!-- Gun -->
+	<xacro:property name="g_d" value="0.0563"/>
+	<xacro:property name="g_w" value="0.4"/>
+	<xacro:property name="g_h" value="0.09"/>
+	<xacro:property name="g_m" value="0.4"/>
+	
+	<link name='gun'>
+		<inertial>
+			<origin rpy="0 0 0" xyz="0 0.0 0.04"/>
+			<mass value="${g_m}"/>
+			<inertia ixx="${cube_c*g_m*(g_h*g_h + g_d*g_d)}" ixy="0.0" ixz="0.0" 
+					 iyy="${cube_c*g_m*(g_w*g_w*4/9 + g_h*g_h)}" iyz="0.0" 
+					 izz="${cube_c*g_m*(g_w*g_w*4/9 + g_d*g_d)}"/>
+		</inertial>
+
+		<collision name="collision">
+			<geometry>
+				<box size="${g_w/2} ${g_d/4} ${g_h/8}"/>
+			</geometry>
+			<origin rpy="0 0 0" xyz="0.1 0 0.04"/>
+		</collision>
+
+		<visual name='visual'>
+			<geometry>
+				<mesh filename="package://tank_robot/meshes/gun.dae"/>
+			</geometry>
+			<origin rpy="0 0 ${pi/2}" xyz="0.055 0 -0.01"/>
+		</visual>
+	</link>
+
+	<gazebo reference="gun">
+		<self_collide>1</self_collide>
+	</gazebo>
+	
+	<joint name="gun_joint" type="revolute">
+		<parent link="turret"/>
+		<child link="gun"/>
+		<origin xyz="0 0 .01"/>
+		<axis xyz="0.0 1.0 0.0"/>
+		<dynamics damping="0.0" friction="20.0"/>
+		<!-- <limit lower="${-pi/6}" upper="${pi/12}" effort="30" velocity="${pi/6}"/> -->
+		<limit lower="${-pi}" upper="${pi}" effort="30" velocity="${pi/6}"/>
+		<dynamics damping="0.1"/>
+	</joint>
+
+	<transmission name="gun_trans">
+		<type>transmission_interface/SimpleTransmission</type>
+		<actuator name="$gun_motor">
+			<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+			<mechanicalReduction>1</mechanicalReduction>
+		</actuator>
+		<joint name="gun_joint">
+			<!-- <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface> -->
+			<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+		</joint>
+	</transmission>
+
+	 <!-- Gun Tip -->
+	<link name="gun_tip_link">
+		<!-- <visual name='visual'>
+			<geometry>
+				<box size="0.1 0.1 0.1"/>
+			</geometry>
+		</visual> -->
+	</link>
+	
+	<joint name="gun_tip_joint" type="fixed">
+		<parent link="gun"/>
+		<child link="gun_tip_link"/>
+		<origin xyz="0.255 0  0.042" rpy="0 0 0"/> <!-- Position at the end of the gun barrel -->
+	</joint>
+
+	<!-- Camera, Lidar, Imu -->
+	<!-- <xacro:include filename="$(find tank_robot)/urdf/lidar.xacro"/> -->
+
+    <!-- <xacro:include filename="$(find tank_robot)/urdf/camera.xacro"/> -->
+
+    <!-- <xacro:include filename="$(find tank_robot)/urdf/imu_plugin.xacro"/> -->
+	
+	<!-- ROS Control Plugin -->
+	<gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+			<robotNamespace>/</robotNamespace>
+		</plugin>
+
+		<!-- <plugin name="planar_move" filename="libgazebo_ros_planar_move.so">
+			<robotNamespace>/</robotNamespace>
+			<commandTopic>cmd_vel</commandTopic> 
+			<odometryTopic>odom</odometryTopic> 
+			<odometryRate>50.0</odometryRate>
+			<odometryFrame>odom</odometryFrame>
+			<robotBaseFrame>base_link</robotBaseFrame>
+			<updateRate>100.0</updateRate>
+		</plugin> -->
+
+		<!-- <plugin name="odom_publisher" filename="libgazebo_ros_p3d.so">
+			<robotNamespace>/</robotNamespace>
+			<alwaysOn>true</alwaysOn>
+			<updateRate>100.0</updateRate>
+			<bodyName>base_link</bodyName>
+			<topicName>odom</topicName>
+			<frameName>map</frameName>
+			<gaussianNoise>0.0</gaussianNoise>
+		</plugin> -->
+  	</gazebo>
+
+	
+
+  
+</robot>

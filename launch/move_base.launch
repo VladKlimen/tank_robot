@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="no_static_map" default="false"/>
+    <!-- change the below line if you generated a new map -->
+    <arg name="map_file" default="$(find tank_robot)/maps/by_small.yaml"/>
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen"/>
+    
+    <!-- amcl  -->
+    <include file="$(find tank_robot)/launch/amcl.launch" />
+
+    <arg name="base_global_planner" default="navfn/NavfnROS"/>
+    <arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS"/>
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <!-- <param name="base_global_planner" value="navfn/NavfnROS"/> -->
+        <!-- <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/> -->
+        <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>        
+        <rosparam file="$(find tank_robot)/params/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
+        <rosparam file="$(find tank_robot)/params/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find tank_robot)/params/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find tank_robot)/params/global_costmap_params.yaml" command="load" /> 
+        <rosparam file="$(find tank_robot)/params/base_local_planner_params.yaml" command="load" />
+        <!-- <rosparam file="$(find tank_robot)/params/planner.yaml" command="load" /> -->
+        <!-- <remap from="/cmd_vel" to="/diff_drive_controller/cmd_vel"/> -->
+    </node>
+
+</launch>

@@ -1,0 +1,3 @@
+type: "velocity_controllers/JointPositionController"
+joint: turret_joint
+pid: {p: 360.0, i: 0.0, d: 0.0}

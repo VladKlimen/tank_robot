@@ -1,0 +1,12 @@
+# ROS build and development directories
+build/
+devel/
+install/
+log/
+
+# ROS workspace files
+.catkin_tools/
+.catkin_workspace
+
+# pycache
+./scripts/__pycache__

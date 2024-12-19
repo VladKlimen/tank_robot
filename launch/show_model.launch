@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- args that can be changed in this launch file -->
+    <arg name="paused" default="true"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="gui" default="true"/>
+    <arg name="headless" default="false"/>
+    <arg name="debug" default="false"/>
+    <arg name="model" default="$(find tank_robot)/urdf/tank.urdf.xacro"/>
+
+    <param name="robot_description" command="xacro $(arg model)"/>
+    
+    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher" output = "screen">
+        <param name="publish_frequency" type="double" value="30.0" />
+    </node>
+    <!-- <node pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" name="joint_state_publisher_gui"/> -->
+    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher"/>
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <!-- <arg name="world_name" value="$(find tank_robot)/worlds/by_small.sdf"/> -->
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="debug" value="$(arg debug)"/>
+    </include>
+
+    <rosparam command="load"
+            file="$(find tank_robot)/config/joint_state_controller.yaml"
+            ns="tank_joint_state_controller" />
+
+    <rosparam command="load"
+            file="$(find tank_robot)/config/turret.yaml"
+            ns="turret_controller" />
+
+    <rosparam command="load"
+            file="$(find tank_robot)/config/gun.yaml"
+            ns="gun_controller" />
+
+    <rosparam command="load"
+            file="$(find tank_robot)/config/diffdrive.yaml"
+            ns="diff_drive_controller" />
+
+    <node name="tank_controller_spawner" pkg="controller_manager" type="spawner" 
+          args="tank_joint_state_controller turret_controller gun_controller diff_drive_controller"/>
+
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_tank" 
+          args="-urdf -model tank -param robot_description" 
+          respawn="false" output="screen"/>
+
+    <!-- Shooter node -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_world_to_odom"
+      args="0 0 0 0 0 0 1 world odom" />
+
+    <node pkg="tank_robot" type="shooting.py" name="shooter" output="screen">
+        <param name="projectile_path" value="$(find tank_robot)/urdf/projectile.urdf"/>
+        <param name="projectile_velocity" value="7.0433"/>
+        <param name="gravity_timeout" value="5.0"/>
+        <param name="gun_frame" value="gun_tip_link"/>
+    </node>
+
+    <node pkg="tank_robot" type="odom_ground_truth.py" name="odom_publisher" output="screen">
+        <param name="robot_name" value="tank"/>
+        <param name="odom_frame" value="odom"/>
+        <param name="base_frame" value="base_link"/>
+    </node>
+
+</launch>
