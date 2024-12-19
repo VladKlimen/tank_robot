@@ -5,7 +5,7 @@ A robo-tank with water gun that patrols your backyard and annoys street cats, fi
 
 ## Installation
 ### Installing rabot_tank package
-(Assuming you have your catking workspace named catkin_ws)
+(Assuming you have your catkin workspace named catkin_ws)
 
 ```sh
 cd ~/catkin_ws/src
@@ -17,14 +17,12 @@ source ~/catkin_ws/devel/setup.bash
 ```
 
 ### Installing python requirements
+Conda (new environment):
 ```sh
-# conda (new environment):
 conda env create -f ~/<your_catkin_ws>/src/tank_robot/tank_robot_environment.yml
 ```
 
-OR
-
+Or using PyPi to install all the requirements:
 ```sh
-# Or using PyPi:
 pip install -r ~/catkin_ws/src/tank_robot/requirements.txt
 ```
