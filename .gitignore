@@ -1,12 +1,6 @@
-# ROS build and development directories
-build/
-devel/
-install/
-log/
-
-# ROS workspace files
-.catkin_tools/
-.catkin_workspace
-
 # pycache
-./scripts/__pycache__
+scripts/__pycache__
+
+# temp dirs
+worlds/goals_tmp
+worlds/goals_tmp_for_map
