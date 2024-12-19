@@ -26,3 +26,33 @@ Or using PyPi to install all the requirements:
 ```sh
 pip install -r ~/catkin_ws/src/tank_robot/requirements.txt
 ```
+
+## Running simulations
+Aviable worlds names: 
+by_small (default world) - no unreachable obstacle-free driving destinations.
+
+by_small2 - there is an obstacle that divides the back yard in sections that are unreachable (by driving) on from another.
+
+Run in first ros terminal:
+```sh
+roslaunch tank_robot gazebo.launch
+```
+To change the world to by_small2:
+```sh
+roslaunch tank_robot gazebo.launch world_name:=by_small2
+```
+
+Run in second ros terminal:
+```sh
+roscd tank_robot/scripts
+./main_tank_routine.py
+```
+
+The simulation should start to run.
+
+## Manual control
+You can control the tank and the gun manually, by running (along with the gazebo.launch in a different terminal):
+```sh
+roscd tank_robot/scripts
+./teleop_tank_keyboard.py
+```
