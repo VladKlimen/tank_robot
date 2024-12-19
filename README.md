@@ -5,7 +5,7 @@ A robo-tank with water gun that patrols your backyard and annoys street cats, fi
 
 ## Installation
 ### Installing rabot_tank package
-(Assuming you have your catking workspace named catkin_ws)
+(Assuming you have your catkin workspace named catkin_ws)
 
 ```sh
 cd ~/catkin_ws/src
