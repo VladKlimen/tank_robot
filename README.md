@@ -22,7 +22,6 @@ Conda (new environment):
 conda env create -f ~/<your_catkin_ws>/src/tank_robot/tank_robot_environment.yml
 ```
 
-OR
 Or using PyPi to install all the requirements:
 ```sh
 pip install -r ~/catkin_ws/src/tank_robot/requirements.txt
