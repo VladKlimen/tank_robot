@@ -4,13 +4,13 @@
   <link name="projectile_link">
     <visual>
       <geometry>
-        <sphere radius="0.1"/>
+        <sphere radius="0.1"/> <!--Increased radius for better visibility in the simulation (doesn't affect the physics)-->
       </geometry>
       <material name="aqua"/>
     </visual>
     <collision name="projectile_collision">
       <geometry>
-        <sphere radius="0.05"/>
+        <sphere radius="0.01"/>
       </geometry>
     </collision>
     <inertial>

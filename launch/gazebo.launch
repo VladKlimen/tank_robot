@@ -9,8 +9,8 @@
     <arg name="debug" default="false"/>
     <arg name="model" default="$(find tank_robot)/urdf/tank.urdf.xacro"/>
     <arg name="world_name" default="by_small"/>
-    <arg name="init_x" default="9.0"/>
-    <arg name="init_y" default="9.0"/>
+    <arg name="init_x" default="0.0"/>
+    <arg name="init_y" default="-9.5"/>
     <!-- <arg name="rvizconfig" default="$(find tank_robot)/rviz/navigation.rviz" /> -->
 
 

@@ -84,6 +84,11 @@ class PlanExecutor:
             rospy.loginfo("Shoot command completed")
             goal_id, status = msg.data.split(", ")
             self.planner.mapper.goals[goal_id]["status"] = GoalStatus[status]
+
+            # delete goal from grid after elimination
+            if self.planner.mapper.goals[goal_id]["status"] == GoalStatus.ELIMINATED:
+                self.planner.mapper.delete_from_grid(self.planner.mapper.codes[goal_id])
+
             rospy.loginfo(f"{goal_id=}, {GoalStatus[status]=}")
             self.command_in_progress = False
 

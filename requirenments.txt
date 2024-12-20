@@ -97,10 +97,6 @@ matplotlib-inline==0.1.7
 mavros==1.20.0
 message-filters==1.17.0
 more-itertools==4.2.0
-moveit-commander==1.1.16
-moveit-core==1.1.16
-moveit-ros-planning-interface==1.1.16
-moveit-ros-visualization==1.1.16
 mpi4py==3.0.3
 msgpack==1.1.0
 multidict==6.1.0

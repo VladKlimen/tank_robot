@@ -5,7 +5,7 @@ import os
 import random
 import subprocess
 import tempfile
-from gazebo_msgs.srv import SpawnModel
+from gazebo_msgs.srv import SpawnModel, DeleteModel
 from geometry_msgs.msg import Pose
 from tf.transformations import quaternion_from_euler
 from GridBasedPlanner import GridBasedPlanner
@@ -76,6 +76,9 @@ class GoalsSpawner:
         self.goals_params.add_goals_params_from_file()
         self.sdf_paths = {}
         self.spawned = []
+
+        self.delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
+        rospy.wait_for_service('/gazebo/delete_model')
 
         if generate_sdf:
             for goal_name, params in self.goals_params.params.items():
@@ -178,5 +181,13 @@ class GoalsSpawner:
 
     def reset_spawned(self):
         self.spawned = []
+
+    def delete_all(self):
+        for model_name in self.spawned:
+            try:
+                self.delete_srv(model_name)
+            except rospy.ServiceException as e:
+                pass
+                # rospy.logwarn(f"Failed to delete model {model_name}: {e}")
         
     

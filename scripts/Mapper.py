@@ -20,9 +20,12 @@ def is_running_in_jupyter():
         pass
     return False
 
+
 if is_running_in_jupyter():
     import pyvista as pv
+
     pv.set_jupyter_backend("trame")
+
 
 # Goals statuses: "new", "queued", "executing", "unreachable", "eliminated", "failed"
 class GoalStatus(Enum):
@@ -35,10 +38,10 @@ class GoalStatus(Enum):
 
 
 class GazeboWaterTankMapper:
-    def __init__(self, world_path, goals_dir=None, init=True, grid_half_length=10, gun_length=0.25, tank_height=0.2, resolution=0.04,
+    def __init__(self, world_path, goals_dir=None, init=True, grid_half_length=10, gun_length=0.2, tank_height=0.2, resolution=0.04,
                  bounds=None, round_to=4, circle_nsamples=50, goal_sizes=None, add_floor=True, add_goals=True, floor_ext=0,
                  max_particle_speed=10.0, min_gun_angle=-np.pi / 6, max_gun_angle=np.pi / 4,
-                 gun_offset=(0.255, 0.0,  0.042), gun_joint_offset=(0.0, 0.0, 0.11)):
+                 gun_offset=(0.255, 0.0, 0.042), gun_joint_offset=(0.0, 0.0, 0.11)):
         """
         Parameters:
             file_path (str): The path to the Gazebo world file.
@@ -71,16 +74,16 @@ class GazeboWaterTankMapper:
                            "goal_4": [0.322, 0.205, 0.464],
                            } if goal_sizes is None else goal_sizes
 
-        self.codes = {"empty": 0, "floor": 10, "box": 255, "cylinder": 255, "goal": 5, "point": 6, "buffer": 7,
-                      "circle": 8, "path": 9, "node": 11}
+        self.codes = {"empty": 0, "floor": 1, "box": 2, "cylinder": 2, "goal": 3, "point": 4, "buffer": 5,
+                      "circle": 6, "path": 7, "node": 8}
         self.allowed_to_collide = [self.codes["empty"], self.codes["point"], self.codes["buffer"], self.codes["circle"],
                                    self.codes["path"], self.codes["node"]]
         self.active_codes = {"empty": False, "floor": False, "box": False, "cylinder": False, "goal": False,
                              "point": False, "buffer": False, "circle": False, "path": False, "node": False}
-        self.colors = {0: "#FFFFFF", 10: "#FFF3F0", 255: "#10606A", 5: "#AD2327", 6: "#424BAA", 7: "#F76D6C",
-                       8: "#DA23FF", 9: "#2AFF00", 11: "#FF8600"}
-        
-        self.goals_codes = {"last_serial": 1000, "codes": {}}
+        self.colors = {0: "#FFFFFF", 1: "#FFF3F0", 2: "#10606A", 3: "#AD2327", 4: "#424BAA", 5: "#F76D6C",
+                       6: "#DA23FF", 7: "#2AFF00", 8: "#FF8600"}
+        self.min_goal_serial = 10
+        self.last_goal_serial = 10
 
         self.grid = None
         self.map_2d = None
@@ -117,20 +120,21 @@ class GazeboWaterTankMapper:
             elif "_goal" in name.lower():
                 goal_id, goal = self.get_goal_data(model)
                 self.goals[goal_id] = {"data": goal, "status": GoalStatus.NEW}
-                self.goals_codes["codes"][goal_id] = self.codes["goal"] + self.goals_codes["last_serial"]
-                self.goals_codes["last_serial"] += 1
+                self.codes[goal_id] = self.codes["goal"] + self.last_goal_serial
+                self.colors[self.codes[goal_id]] = self.colors[self.codes["goal"]]
+                self.last_goal_serial += 1
             else:
                 self.others.append(model.get("name"))
         print("\tV")
 
-    def add_goals_from_dir(self, delete_files=True):
+    def add_goals_from_dir(self, delete_files=True, add_to_grid=True):
         """
         Add goals from sdf files in goals_dir
         """
         if not self.goals_dir:
             print("Goals directory path wasn't provided.")
             return False
-        
+
         print("Adding goals from directory...", end="")
         for file_name in self.get_file_names(self.goals_dir):
             file_path = os.path.join(self.goals_dir, file_name)
@@ -143,8 +147,13 @@ class GazeboWaterTankMapper:
                 if "_goal" in name.lower():
                     goal_id, goal = self.get_goal_data(model)
                     self.goals[goal_id] = {"data": goal, "status": GoalStatus.NEW}
-                    self.goals_codes["codes"][goal_id] = self.codes["goal"] + self.goals_codes["last_serial"]
-                    self.goals_codes["last_serial"] += 1
+                    self.codes[goal_id] = self.codes["goal"] + self.last_goal_serial
+                    self.colors[self.codes[goal_id]] = self.colors[self.codes["goal"]]
+                    self.last_goal_serial += 1
+                    if add_to_grid:
+                        self.add_goal_to_grid(goal, self.codes[goal_id])
+                        self.active_codes[goal_id] = True
+
             if delete_files:
                 self.delete_file(file_path)
         print("\tV")
@@ -154,7 +163,7 @@ class GazeboWaterTankMapper:
         # Get files from the given dir path
         file_names = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
         return file_names
-    
+
     @staticmethod
     def delete_file(file_path):
         try:
@@ -168,23 +177,27 @@ class GazeboWaterTankMapper:
     def add_all_to_grid(self, add_goals=True):
         print("Adding all world elements to the grid", end="")
         boxes = sum([[elem for elem in list(obs.values()) if elem["type"] == "box"] for obs in self.obstacles], [])
-        cylinders = sum([[elem for elem in list(obs.values()) if elem["type"] == "cylinder"] for obs in self.obstacles], [])
+        cylinders = sum([[elem for elem in list(obs.values()) if elem["type"] == "cylinder"] for obs in self.obstacles],
+                        [])
         for box in boxes:
             self.add_box_to_grid(box)
         for cylinder in cylinders:
             self.add_cylinder_to_grid(cylinder)
         if add_goals:
-            for goal in self.goals.values():
-                self.add_box_to_grid(goal["data"], box_type="goal")
-            if len(self.goals) > 0:
-                self.active_codes["goal"] = True
-
+            for goal_id, goal in self.goals.items():
+                self.add_box_to_grid(goal["data"], box_type="goal", code=self.codes[goal_id])
+                self.active_codes[goal_id] = True
+            # if len(self.goals) > 0:
+            #     self.active_codes["goal"] = True
         if len(boxes) > 0:
             self.active_codes["box"] = True
         if len(cylinders) > 0:
             self.active_codes["cylinder"] = True
 
         print("\tV")
+
+    def add_goal_to_grid(self, goal, code):
+        self.add_box_to_grid(goal, box_type="goal", code=code)
 
     def calculate_z_max(self):
         print("Calculating z max...", end="")
@@ -507,14 +520,15 @@ class GazeboWaterTankMapper:
                     if -l <= point_local[0] <= l and -w <= point_local[1] <= w and -h <= point_local[2] <= h:
                         if self.grid[i, j, k] not in self.allowed_to_collide:
                             if self.grid[i, j, k] != self.codes["box"] and self.grid[i, j, k] != self.codes["cylinder"]:
-                                print(f"Failed to add {box_type} at {pos}: collides with other non-obstacle object (code: {self.grid[i, j, k]}).")
+                                print(
+                                    f"Failed to add {box_type} at {pos}: collides with other non-obstacle object (code: {self.grid[i, j, k]}).")
                                 return False
                             else:
                                 continue
                         if self.grid[i, j, k] == self.codes["empty"]:
                             points_to_add.append((i, j, k))
         for i, j, k in points_to_add:
-            self.grid[i, j, k] = self.codes[box_type] if not code else code
+            self.grid[i, j, k] = self.codes[box_type] if code is None else code
 
         return True
 
@@ -577,7 +591,8 @@ class GazeboWaterTankMapper:
                     if px ** 2 + py ** 2 <= radius ** 2 and -h <= pz <= h:
                         if self.grid[i, j, k] not in self.allowed_to_collide:
                             if self.grid[i, j, k] != self.codes["box"] and self.grid[i, j, k] != self.codes["cylinder"]:
-                                print(f"Failed to add cylinder: collides with other non-obstacle object (code: {self.grid[i, j, k]}).")
+                                print(
+                                    f"Failed to add cylinder: collides with other non-obstacle object (code: {self.grid[i, j, k]}).")
                                 return False
                             else:
                                 continue
@@ -587,7 +602,6 @@ class GazeboWaterTankMapper:
             self.grid[i, j, k] = self.codes["cylinder"]
 
         return True
-                       
 
     def add_floor_to_grid(self, extension=1):
         """
@@ -657,11 +671,13 @@ class GazeboWaterTankMapper:
 
     def delete_from_grid(self, code):
         self.grid[self.grid == code] = self.codes["empty"]
+        self.create_2d_map_from_layers()
+        self.add_buffer_zone(buffer_length=self.gun_radius)
 
     def delete_goals_by_status(self, status):
         for goal_id, goal in self.goals.items():
             if goal["status"] == status:
-                self.delete_from_grid(self.goals_codes[goal_id])
+                self.delete_from_grid(self.codes["codes"][goal_id])
 
     def glyphs_by_code(self, code):
         # Get the indices of occupied cells
@@ -732,9 +748,9 @@ class GazeboWaterTankMapper:
         if self.nlayers_2d >= self.grid.shape[2]:
             raise ValueError(
                 f"Number of layers to merge (nlayers_2d) is too large; grid only has {self.grid.shape[2]} layers along z.")
-        
+
         if obs_codes is None:
-            obs_codes = [self.codes['box'], self.codes['cylinder']]
+            obs_codes = [self.codes['box'], self.codes['cylinder']] + [code for code in self.codes.values() if code > self.min_goal_serial]
 
         # grid shape: (I, J, K) to (I, J, k)
         sliced = self.grid[:, :, start:self.nlayers_2d + start]
@@ -913,7 +929,8 @@ class GazeboWaterTankMapper:
                 -h / 2 <= z <= h / 2
         )
 
-    def calculate_particle_trajectory(self, gun_base, target, pitch_steps=200, gravity=9.81, time_step=0.01, eps=None, exact=False, border=0):
+    def calculate_particle_trajectory(self, gun_base, target, pitch_steps=200, gravity=9.81, time_step=0.01, eps=None,
+                                      exact=False, border=0):
         """
         Calculate a collision-free particle trajectory from start to target, considering obstacles.
 
@@ -988,7 +1005,9 @@ class GazeboWaterTankMapper:
 
                 if np.linalg.norm([x - target[0], y - target[1], z - target[2]]) < eps:
                     t = dxy / v0
-                    return trajectory, round(pitch, self.round_to), round(yaw, self.round_to), round(v0, self.round_to), round(t, self.round_to)  # Valid trajectory found
+                    return trajectory, round(pitch, self.round_to), round(yaw, self.round_to), round(v0,
+                                                                                                     self.round_to), round(
+                        t, self.round_to)  # Valid trajectory found
 
         return [None] * 5  # No collision-free trajectory found
 
@@ -1028,12 +1047,12 @@ class GazeboWaterTankMapper:
         if border > 0:
             indexes_combinations = self.generate_combinations(*indexes_combinations[0], border)
         if any(((i < 0 or i >= self.grid.shape[0] or
-                    j < 0 or j >= self.grid.shape[1] or
-                    k < 0 or k >= self.grid.shape[2] or
-                    self.grid[i, j, k] != 0) for i, j, k in indexes_combinations)):
-                return True
+                 j < 0 or j >= self.grid.shape[1] or
+                 k < 0 or k >= self.grid.shape[2] or
+                 self.grid[i, j, k] != 0) for i, j, k in indexes_combinations)):
+            return True
         return False
-    
+
     @staticmethod
     def generate_combinations(i, j, k, border):
         """
@@ -1051,7 +1070,7 @@ class GazeboWaterTankMapper:
             variations = [-m, 0, m]
             for x, y, z in product(variations, repeat=3):
                 combinations.append((i + x, j + y, k + z))
-        
+
         return set(combinations)
 
     def calculate_max_height_and_horizontal_distance(self, z_start=0.0, z_finish=0.0, g=9.81):
@@ -1114,6 +1133,7 @@ class GazeboWaterTankMapper:
             circle_col = round(center_col + rel_col)
 
             # Check if the calculated indices are within grid bounds and not on obstacles
-            if 0 <= circle_row < grid_rows and 0 <= circle_col < grid_cols and self.map_2d_buffered[circle_row, circle_col] == 0:
+            if 0 <= circle_row < grid_rows and 0 <= circle_col < grid_cols and self.map_2d_buffered[
+                circle_row, circle_col] == 0:
                 samples.append((*self.grid_to_world(circle_row, circle_col)[:2], self.gun_joint_offset[2]))
         return samples

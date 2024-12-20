@@ -20,7 +20,7 @@
           </geometry>
         </visual>
         <collision name='collision'>
-          <pose>0 0 ${sz*cz}</pose>
+          <pose>0 0 ${sz*cz/2}</pose>
           <geometry>
             <box>
               <size>${sx*cx} ${sy*cy} ${sz*cz}</size>
