@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import heapq
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
@@ -196,7 +197,7 @@ class GridBasedPlanner:
         else:
             return ax
 
-    def visualize_plan(self, show=False, save=True, goal_status=GoalStatus.QUEUED):
+    def visualize_plan(self, show=False, save=True, goal_status=GoalStatus.QUEUED, img_id=""):
         fig, ax = self.mapper.visualize_2d_map(self.mapper.map_2d_buffered, show=False)
         legend = True
         for goal_id, path in self.simplified_paths_grid.items():
@@ -216,7 +217,8 @@ class GridBasedPlanner:
         if show:
             plt.show()
         if save:
-            plt.savefig("grid_based_driving_plan.png", dpi=300, bbox_inches="tight")
+            os.makedirs("../plan_images/", exist_ok=True)
+            plt.savefig(f"../plan_images/grid_based_driving_plan{img_id}.png", dpi=300, bbox_inches="tight")
 
     def find_firing_trajectories(self, distance_between_points=0.25, radius_degradation=0.5, min_radius=0.5, ids=None,
                                  reset=True, goal_status=GoalStatus.QUEUED, search_retries=5,
@@ -274,7 +276,6 @@ class GridBasedPlanner:
                             break
             if not trajectory_found:
                 self.mapper.goals[goal_id]["status"] = GoalStatus.UNREACHABLE
-                print(f"Trajectory for {x, y, z} doesn't exist. No solution.")
 
         print(f"Took:{time() - start}")
         if len(self.shooting_data) > 0:

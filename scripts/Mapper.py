@@ -127,7 +127,7 @@ class GazeboWaterTankMapper:
                 self.others.append(model.get("name"))
         print("\tV")
 
-    def add_goals_from_dir(self, delete_files=True, add_to_grid=True):
+    def add_goals_from_dir(self, delete_files=True, add_to_grid=False):
         """
         Add goals from sdf files in goals_dir
         """
@@ -153,6 +153,9 @@ class GazeboWaterTankMapper:
                     if add_to_grid:
                         self.add_goal_to_grid(goal, self.codes[goal_id])
                         self.active_codes[goal_id] = True
+            if add_to_grid:
+                self.create_2d_map_from_layers()
+                self.add_buffer_zone(buffer_length=self.gun_radius)
 
             if delete_files:
                 self.delete_file(file_path)

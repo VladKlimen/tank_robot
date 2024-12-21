@@ -76,7 +76,7 @@ def init_simulation(generate_goals_sdf=True):
     return mapper, planner, executor, goals_spawner
 
 
-def find_and_execute_plan(planner:GridBasedPlanner, path_spawner:PathSpawner, spawned_now:list, executor:PlanExecutor, goal_status:GoalStatus):
+def find_and_execute_plan(planner:GridBasedPlanner, path_spawner:PathSpawner, spawned_now:list, executor:PlanExecutor, goal_status:GoalStatus, save_img=True):
     rospy.loginfo("Searching for free-collision shooting trajectories")
     start = time()
     if planner.find_firing_trajectories(ids=spawned_now, goal_status=goal_status, 
@@ -84,6 +84,9 @@ def find_and_execute_plan(planner:GridBasedPlanner, path_spawner:PathSpawner, sp
         planner.find_driving_plan(sort_by_zones=False, goal_status=goal_status)
         planner.build_plan()
         calculations_time = time() - start
+
+        if save_img:
+            planner.visualize_plan(show=False, save=True, goal_status=goal_status, img_id="_" + str(round(time(), 2)))
 
         paths = list(planner.simplified_paths_world.values())
         path_spawner.spawn_paths(paths)
@@ -135,6 +138,7 @@ if __name__ == '__main__':
     if not os.path.exists(stats_file_path):
         create_stats_file(stats_file_path)
 
+    start_idx_from = 6
     for i, goals_group_sizes in enumerate(goals_groups_sizes):
         mapper, planner, executor, goals_spawner = init_simulation()
 
@@ -147,6 +151,11 @@ if __name__ == '__main__':
         for n in goals_group_sizes:
             # Spawn goals in groups and execute plans
             spawned_now = goals_spawner.spawn_n_goals(n)
+            for goal_id in spawned_now:
+                mapper.add_goal_to_grid(mapper.goals[goal_id]["data"], mapper.codes[goal_id])
+            mapper.create_2d_map_from_layers()
+            mapper.add_buffer_zone(buffer_length=mapper.gun_radius)
+
             calculations_time += find_and_execute_plan(planner, path_spawner, spawned_now, executor, goal_status=GoalStatus.QUEUED)
 
         # Try to reach failed goals
@@ -154,14 +163,14 @@ if __name__ == '__main__':
         # Try to reach goals marked UNREACHABLE previously
         calculations_time += find_and_execute_plan(planner, path_spawner, None, executor, goal_status=GoalStatus.UNREACHABLE)
 
-        rospy.loginfo(f"Finished simulation {i}.")
+        rospy.loginfo(f"Finished simulation {i + start_idx_from}.")
 
         reached += sum(1 for goal in mapper.goals.values() if goal["status"] == GoalStatus.ELIMINATED)
         failed += sum(1 for goal in mapper.goals.values() if goal["status"] == GoalStatus.FAILED)
         unreachable += sum(1 for goal in mapper.goals.values() if goal["status"] == GoalStatus.UNREACHABLE)
 
         # header = ["simulation", "reached", "failed", "unreachable", "world_name", "simulation_time", "calculations_time"]
-        add_stats(stats_file_path, [i, reached, failed, unreachable, world_name, time() - start, calculations_time])
+        add_stats(stats_file_path, [i + start_idx_from, reached, failed, unreachable, world_name, time() - start, calculations_time])
 
         goals_spawner.delete_all()
 
