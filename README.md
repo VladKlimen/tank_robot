@@ -59,3 +59,8 @@ roscd tank_robot/scripts
 
 ## Visualizing plan
 See the plan_visualization.ipyb and the plan_visualization_examples folder
+
+## Simulation video recordings
+[Fully reachable world](https://youtu.be/11dq_V35aoc)
+
+[Partially reachable world](https://youtu.be/Y5Ole3YMSqc)
