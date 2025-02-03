@@ -1,6 +1,11 @@
 # Tank robot project
 
 A robo-tank with water gun that patrols your backyard and annoys street cats, firing (a warm) water on them (summer only).
+
+<p align="center">
+  <img src="robotank.png" alt="Robotank" width=600>
+</p>
+
 ------------------
 
 ## Installation
