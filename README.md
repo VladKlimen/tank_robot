@@ -2,6 +2,8 @@
 
 A robo-tank with water gun that patrols your backyard and annoys street cats, firing (a warm) water on them (summer only).
 
+The project simulates a robo-tank for patrolling an area and spraying unwanted targets with a water gun. It plans efficient paths to reach targets, calculates optimal firing trajectories considering ballistic behavior and obstacles, and runs simulations in Gazebo, leveraging its physics engine for realistic movement and projectile dynamics. The system integrates motion planning, pathfinding, and trajectory optimization for autonomous operation.
+
 <p align="center">
   <img src="robotank.png" alt="Robotank" width=600>
 </p>
